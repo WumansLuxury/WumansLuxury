@@ -278,6 +278,41 @@
         const SUPABASE_URL = 'https://wnmwajgamudpmwsylznl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndubXdhamdhbXVkcG13c3lsem5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzY4NjUsImV4cCI6MjEwMDkxMjg2NX0.XA25lWUiks5r6M8Vw4-65BckwCYnxz9OOD3663mlb2g';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Function to fetch products dynamically from Supabase
+async function fetchAndRenderProducts() {
+  const productGrid = document.getElementById('product-grid'); // adjust ID if your container uses a different name
+  if (!productGrid) return;
+
+  const { data: products, error } = await supabaseClient
+    .from('Products')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching products:', error);
+    return;
+  }
+
+  // Clear existing dummy cards
+  productGrid.innerHTML = '';
+
+  // Render dynamic items from your Supabase database
+  products.forEach(product => {
+    const cardHtml = `
+      <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
+        <img src="${product.image_url}" alt="${product.name}" class="w-full h-64 object-cover" />
+        <div class="p-4">
+          <h3 class="font-bold text-lg">${product.name}</h3>
+          <p class="text-gray-600">${product.category || ''}</p>
+          <p class="text-xl font-semibold mt-2">₦${Number(product.price).toLocaleString()}</p>
+        </div>
+      </div>
+    `;
+    productGrid.insertAdjacentHTML('beforeend', cardHtml);
+  });
+}
+
+// Run the fetch on page load
+document.addEventListener('DOMContentLoaded', fetchAndRenderProducts);
 
         // Standard sizing mappings based on item category
         const CATEGORY_SIZES = {
