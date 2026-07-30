@@ -274,13 +274,377 @@
 
     <!-- Application Script -->
     <script>
+        // Supabase Credentials & Initialization
+        const SUPABASE_URL = 'https://wnmwajgamudpmwsylznl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndubXdhamdhbXVkcG13c3lsem5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzY4NjUsImV4cCI6MjEwMDkxMjg2NX0.XA25lWUiks5r6M8Vw4-65BckwCYnxz9OOD3663mlb2g';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Function to fetch products dynamically from Supabase
+        async function fetchAndRenderProducts() {
+            const productGrid = document.getElementById('products-grid');
+            if (!productGrid) return;
+
+            try {
+                const { data: products, error } = await supabaseClient
+                    .from('Products')
+                    .select('*');
+
+                if (error) throw error;
+
+                if (!products || products.length === 0) {
+                    productGrid.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <p class="text-xs uppercase tracking-widest text-gray-400">No luxury items available at the moment.</p>
+                        </div>`;
+                    return;
+                }
+
+                // Clear existing items and render dynamic products
+                productGrid.innerHTML = products.map(product => `
+                    <div class="group relative bg-[#121212] border border-amber-500/20 rounded-lg overflow-hidden flex flex-col">
+                        <div class="aspect-square overflow-hidden bg-zinc-900 relative">
+                            <img src="${product.image_url || ''}" alt="${product.name || 'Luxury Item'}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <span class="absolute top-2 left-2 bg-black/70 text-amber-400 text-[10px] uppercase tracking-wider px-2 py-1 border border-amber-500/30">
+                                ${product.category || 'Luxury'}
+                            </span>
+                        </div>
+                        <div class="p-4 flex flex-col flex-grow justify-between">
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-200 uppercase tracking-wide truncate">${product.name}</h3>
+                                <p class="text-amber-400 text-sm font-semibold mt-1">₦${Number(product.price || 0).toLocaleString()}</p>
+                            </div>
+                            <button class="mt-4 w-full bg-amber-500 hover:bg-amber-400 text-black text-xs uppercase tracking-widest font-bold py-2 px-4 transition">
+                                Add to Bag
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                console.error('Error fetching products:', err.message);
+                productGrid.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <p class="text-xs uppercase tracking-widest text-red-400">Failed to load inventory. Please check connection.</p>
+                    </div>`;
+            }
+        }
+
+        // Automatically trigger on page load
+        document.addEventListener('DOMContentLoaded', fetchAndRenderProducts);
+
+        // Standard sizing mappings based on item category
+        const CATEGORY_SIZES = {
+            "Shoes": ["38", "39", "40", "41", "42", "43", "44", "45", "46"],
+            "Apparel": ["S", "M", "L", "XL", "XXL"],
+            "Bags": ["Standard / One Size"],
+            "Watches": ["Standard / One Size"],
+            "Accessories": ["Standard / One Size"],
+            "Perfumes": ["100ml EDP"]
+        };
+
+        // Fallback static items if Supabase table is empty or offline
+        const fallbackProducts = [
+            {
+                id: 1,
+                name: "Unisex Royal Calfskin Tote",
+                category: "Bags",
+                price: 85000,
+                image_url: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop",
+                badge: "Unisex Best Seller",
+                description: "Handcrafted full-grain unisex tote designed for both business and leisure travel."
+            }
+        ];
+    </script>
+</body>
+</html>
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-onyx/90 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="lg:hidden text-gold text-xl focus:outline-none">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <!-- Brand Logo -->
+            <a href="#" class="font-serif text-xl sm:text-2xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-gold via-yellow-200 to-gold">
+                WUMANS_LUXURY
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden lg:flex items-center space-x-8 text-xs font-semibold tracking-widest uppercase text-gray-300">
+                <a href="#collection" class="hover:text-gold transition-colors">Collection</a>
+                <a href="#categories" class="hover:text-gold transition-colors">Categories</a>
+                <a href="#about" class="hover:text-gold transition-colors">The Brand</a>
+                <a href="#contact" class="hover:text-gold transition-colors">Concierge</a>
+            </nav>
+
+            <!-- Action Icons -->
+            <div class="flex items-center space-x-4">
+                <button id="search-btn" class="text-gray-300 hover:text-gold text-lg transition-colors p-2">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <button id="cart-btn" class="relative text-gray-300 hover:text-gold text-lg transition-colors p-2">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-gold text-black font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow-lg">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Overlay Drawer -->
+    <div id="search-drawer" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center pt-24 px-4">
+        <div class="bg-luxuryGray border border-gold/40 w-full max-w-2xl rounded-2xl p-6 relative shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-serif font-bold text-gold text-lg">Search Catalog</h3>
+                <button id="close-search" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gold"></i>
+                <input type="text" id="search-input" placeholder="Search luxury wears, bags, perfumes..." class="w-full bg-onyx text-white pl-12 pr-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-gold text-sm">
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-lg flex flex-col p-6 space-y-6">
+        <div class="flex items-center justify-between">
+            <span class="font-serif font-bold text-gold text-xl">WUMANS_LUXURY</span>
+            <button id="close-mobile-menu" class="text-gray-400 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="flex flex-col space-y-4 text-sm font-semibold tracking-wider uppercase pt-6 border-t border-white/10">
+            <a href="#collection" class="mobile-nav-link hover:text-gold">Collection</a>
+            <a href="#categories" class="mobile-nav-link hover:text-gold">Categories</a>
+            <a href="#about" class="mobile-nav-link hover:text-gold">The Brand</a>
+            <a href="#contact" class="mobile-nav-link hover:text-gold">Concierge</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative h-[80vh] flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&auto=format&fit=crop" alt="Luxury Hero" class="w-full h-full object-cover opacity-40 scale-105 animate-pulse duration-1000">
+            <div class="absolute inset-0 bg-gradient-to-t from-onyx via-onyx/50 to-transparent"></div>
+        </div>
+        <div class="relative z-10 text-center px-4 max-w-3xl space-y-6">
+            <span class="text-gold tracking-[0.3em] uppercase text-xs font-bold bg-gold/10 border border-gold/30 px-4 py-1.5 rounded-full">Excellence & Distinction</span>
+            <h1 class="font-serif text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
+                Embody Timeless Elegance
+            </h1>
+            <p class="text-gray-300 text-sm sm:text-base font-light max-w-xl mx-auto">
+                Discover bespoke unisex apparel, fine leather accessories, and curated home statements crafted for the discerning individual.
+            </p>
+            <div class="pt-4">
+                <a href="#collection" class="inline-block px-8 py-4 bg-gradient-to-r from-gold to-gold-dark text-black font-bold uppercase text-xs tracking-widest rounded-full hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all">
+                    Explore Collection
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Category Pills Quick View -->
+    <section id="categories" class="py-12 bg-gradient-to-b from-onyx to-luxuryGray border-y border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-8">
+                <h2 class="font-serif text-2xl font-bold text-white">Curated Categories</h2>
+                <div class="w-12 h-0.5 bg-gold mx-auto mt-2"></div>
+            </div>
+            <div id="category-pills" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                <!-- Dynamically populated category tiles -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Collection Section -->
+    <section id="collection" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
+            <div>
+                <span class="text-gold uppercase tracking-widest text-xs font-semibold">Inventory Showcase</span>
+                <h2 class="font-serif text-3xl font-bold text-white mt-1">The Signature Catalog</h2>
+            </div>
+            
+            <!-- Filter Category Buttons -->
+            <div id="category-filter-buttons" class="flex flex-wrap gap-2">
+                <!-- Dynamically populated filters -->
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Loading placeholder -->
+            <div class="col-span-full text-center py-20 text-gray-500">
+                <i class="fa-solid fa-spinner fa-spin text-3xl text-gold mb-3"></i>
+                <p class="text-xs uppercase tracking-widest">Loading exquisite pieces...</p>
+            </div>
+        </div>
+
+        <div class="text-center pt-8 text-xs text-gray-400">
+            Showing <span id="product-count" class="text-gold font-bold">0</span> exclusive items
+        </div>
+    </section>
+
+    <!-- Product Details Modal -->
+    <div id="product-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div id="product-modal-overlay" class="absolute inset-0"></div>
+        <div class="relative bg-luxuryGray border border-gold/40 w-full max-w-xl rounded-3xl p-6 sm:p-8 z-10 shadow-2xl max-h-[90vh] overflow-y-auto space-y-6">
+            <button id="close-product-modal" class="absolute top-6 right-6 text-gray-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <div id="product-modal-body" class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping Bag Slide-Over / Modal -->
+    <div id="cart-modal" class="hidden fixed inset-0 z-50 overflow-hidden">
+        <div id="cart-overlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-luxuryGray border-l border-white/10 flex flex-col justify-between shadow-2xl">
+                
+                <!-- Cart Header -->
+                <div class="p-6 border-b border-white/10 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-bag-shopping text-gold"></i>
+                        <h3 class="font-serif font-bold text-lg text-white">Your Shopping Bag</h3>
+                    </div>
+                    <button id="close-cart" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <!-- Cart Items List -->
+                <div id="cart-items-container" class="flex-1 overflow-y-auto p-6 space-y-4">
+                    <!-- Items injected here -->
+                </div>
+                
+                <!-- Cart Footer / Summary -->
+                <div class="p-6 border-t border-white/10 bg-onyx space-y-4">
+                    <!-- Customer Details Form -->
+                    <div class="space-y-3 pt-2 border-b border-white/10 pb-4">
+                        <h4 class="text-xs uppercase tracking-widest text-gold font-bold">Delivery Information</h4>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-wider text-gray-400 mb-1">Full Name *</label>
+                            <input type="text" id="customer-name" placeholder="e.g., Adebayo Johnson" class="w-full bg-luxuryGray text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-gold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-wider text-gray-400 mb-1">Phone Number *</label>
+                            <input type="tel" id="customer-phone" placeholder="e.g., 08012345678" class="w-full bg-luxuryGray text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-gold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-wider text-gray-400 mb-1">Delivery Address *</label>
+                            <textarea id="customer-address" rows="2" placeholder="House/Street address, Bus stop, City" class="w-full bg-luxuryGray text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-gold resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between text-gray-400">
+                            <span>Subtotal</span>
+                            <span id="cart-subtotal" class="text-white font-bold">₦0</span>
+                        </div>
+                        
+                        <!-- Delivery Location Selector -->
+                        <div class="pt-2">
+                            <label class="block text-[10px] uppercase tracking-widest text-gold mb-1">Select Delivery Zone:</label>
+                            <select id="delivery-location" class="w-full bg-luxuryGray text-xs text-white border border-white/10 rounded-xl p-2.5 focus:outline-none focus:border-gold">
+                                <option value="5000">Epe / Local Delivery (₦5,000)</option>
+                                <option value="10000" selected>Lagos Mainland / Island (₦10,000)</option>
+                                <option value="25000">Interstate Delivery (₦25,000)</option>
+                                <option value="0">Store Pickup - Free (₦0)</option>
+                            </select>
+                        </div>
+
+                        <div class="flex justify-between text-gray-400 pt-2">
+                            <span>Delivery Fee</span>
+                            <span id="cart-shipping" class="text-white font-bold">₦10,000</span>
+                        </div>
+                        <div class="flex justify-between text-base font-serif font-bold text-gold pt-2 border-t border-white/10">
+                            <span>Total Due</span>
+                            <span id="cart-total">₦0</span>
+                        </div>
+                    </div>
+
+                    <button id="checkout-btn" class="w-full py-4 bg-gradient-to-r from-gold to-gold-dark text-black font-bold uppercase text-xs tracking-widest rounded-full hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-brands fa-whatsapp text-base"></i>
+                        <span>Complete Order via WhatsApp</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-luxuryGray border border-gold text-white px-5 py-4 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none flex items-center space-x-3">
+        <i class="fa-solid fa-circle-check text-gold text-lg"></i>
+        <div>
+            <h4 id="toast-title" class="font-bold text-xs uppercase tracking-wider text-gold">Notification</h4>
+            <p id="toast-message" class="text-xs text-gray-300">Item added successfully.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="contact" class="bg-onyx border-t border-white/10 py-12 text-center text-xs text-gray-400 space-y-4">
+        <p class="font-serif text-gold text-lg font-bold tracking-widest">WUMANS_LUXURY</p>
+        <p>Providing premium lifestyle apparel and household items.</p>
+        <p class="text-[10px] text-gray-600 tracking-widest uppercase">&copy; 2026 WUMANS_LUXURY. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Application Script -->
+    <script>
         // Supabase Credentials
         const SUPABASE_URL = 'https://wnmwajgamudpmwsylznl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndubXdhamdhbXVkcG13c3lsem5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzY4NjUsImV4cCI6MjEwMDkxMjg2NX0.XA25lWUiks5r6M8Vw4-65BckwCYnxz9OOD3663mlb2g';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Function to fetch products dynamically from Supabase
 async function fetchAndRenderProducts() {
-  const productGrid = document.getElementById('product-grid'); // adjust ID if your container uses a different name
+    const productGrid = document.getElementById('products-grid');
+    if (!productGrid) return;
+
+    try {
+        const { data: products, error } = await supabaseClient
+            .from('Products')
+            .select('*');
+
+        if (error) throw error;
+
+        if (!products || products.length === 0) {
+            productGrid.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                    <p class="text-xs uppercase tracking-widest text-gray-400">No luxury items available at the moment.</p>
+                </div>`;
+            return;
+        }
+
+        // Clear existing items and render dynamic products
+        productGrid.innerHTML = products.map(product => `
+            <div class="group relative bg-[#121212] border border-amber-500/20 rounded-lg overflow-hidden flex flex-col">
+                <div class="aspect-square overflow-hidden bg-zinc-900 relative">
+                    <img src="${product.image_url || ''}" alt="${product.name || 'Luxury Item'}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <span class="absolute top-2 left-2 bg-black/70 text-amber-400 text-[10px] uppercase tracking-wider px-2 py-1 border border-amber-500/30">
+                        ${product.category || 'Luxury'}
+                    </span>
+                </div>
+                <div class="p-4 flex flex-col flex-grow justify-between">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-200 uppercase tracking-wide truncate">${product.name}</h3>
+                        <p class="text-amber-400 text-sm font-semibold mt-1">₦${Number(product.price || 0).toLocaleString()}</p>
+                    </div>
+                    <button class="mt-4 w-full bg-amber-500 hover:bg-amber-400 text-black text-xs uppercase tracking-widest font-bold py-2 px-4 transition">
+                        Add to Bag
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        console.error('Error fetching products:', err.message);
+        productGrid.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <p class="text-xs uppercase tracking-widest text-red-400">Failed to load inventory. Please check connection.</p>
+            </div>`;
+    }
+}
+
+// Automatically trigger on page load
+fetchAndRenderProducts();
+ const productGrid = document.getElementById('product-grid'); // adjust ID if your container uses a different name
   if (!productGrid) return;
 
   const { data: products, error } = await supabaseClient
