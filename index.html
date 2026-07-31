@@ -83,7 +83,7 @@
             </div>
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gold"></i>
-                <input type="text" id="search-input" placeholder="Search luxury wears, bags, perfumes..." class="w-full bg-onyx text-white pl-12 pr-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-gold text-sm">
+                <input type="text" id="search-input" placeholder="Search luxury wears, bags, appliances..." class="w-full bg-onyx text-white pl-12 pr-4 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-gold text-sm">
             </div>
         </div>
     </div>
@@ -114,7 +114,7 @@
                 Embody Timeless Elegance
             </h1>
             <p class="text-gray-300 text-sm sm:text-base font-light max-w-xl mx-auto">
-                Discover bespoke unisex apparel, fine leather accessories, and curated home statements crafted for the discerning individual.
+                Discover bespoke unisex apparel, fine leather accessories, home statements, and premium appliances crafted for the discerning individual.
             </p>
             <div class="pt-4">
                 <a href="#collection" class="inline-block px-8 py-4 bg-gradient-to-r from-gold to-gold-dark text-black font-bold uppercase text-xs tracking-widest rounded-full hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-all">
@@ -131,7 +131,7 @@
                 <h2 class="font-serif text-2xl font-bold text-white">Curated Categories</h2>
                 <div class="w-12 h-0.5 bg-gold mx-auto mt-2"></div>
             </div>
-            <div id="category-pills" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"></div>
+            <div id="category-pills" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4"></div>
         </div>
     </section>
 
@@ -244,7 +244,7 @@
     <!-- Footer -->
     <footer id="contact" class="bg-onyx border-t border-white/10 py-12 text-center text-xs text-gray-400 space-y-4">
         <p class="font-serif text-gold text-lg font-bold tracking-widest">WUMANS_LUXURY</p>
-        <p>Providing premium lifestyle apparel and household items.</p>
+        <p>Providing premium lifestyle apparel, home statements, and appliances.</p>
         <p class="text-[10px] text-gray-600 tracking-widest uppercase">&copy; 2026 WUMANS_LUXURY. All Rights Reserved.</p>
     </footer>
 
@@ -260,17 +260,18 @@
             "Bags": ["Standard / One Size"],
             "Watches": ["Standard / One Size"],
             "Accessories": ["Standard / One Size"],
-            "Perfumes": ["100ml EDP"]
+            "Perfumes": ["100ml EDP"],
+            "Appliances": ["Standard / One Size"]
         };
 
         const fallbackProducts = [
             { id: 1, name: "Unisex Royal Calfskin Tote", category: "Bags", price: 85000, image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop", badge: "Unisex Best Seller", description: "Handcrafted full-grain unisex tote." },
             { id: 2, name: "Prestige Chronograph Gold Watch", category: "Watches", price: 145000, image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop", badge: "Unisex Classic", description: "Automatic motion timepiece." },
-            { id: 3, name: "Unisex Italian Leather Loafers", category: "Shoes", price: 72000, image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800&auto=format&fit=crop", badge: "New Arrival", description: "Premium handcrafted footwear." }
+            { id: 3, name: "Executive Smart Blender & Appliance", category: "Appliances", price: 65000, image: "https://images.unsplash.com/photo-1570222094114-d074f7e1e6e0?q=80&w=800&auto=format&fit=crop", badge: "Home & Office", description: "High-performance luxury kitchen and workspace appliance." }
         ];
 
         let products = [];
-        const categories = ["All", "Bags", "Shoes", "Watches", "Apparel", "Accessories", "Perfumes"];
+        const categories = ["All", "Bags", "Shoes", "Watches", "Apparel", "Accessories", "Perfumes", "Appliances"];
         let activeCategory = "All";
         let searchQuery = "";
         let selectedModalSize = null;
@@ -366,7 +367,8 @@
                 "Watches": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=400&auto=format&fit=crop",
                 "Apparel": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=400&auto=format&fit=crop",
                 "Accessories": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=400&auto=format&fit=crop",
-                "Perfumes": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400&auto=format&fit=crop"
+                "Perfumes": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=400&auto=format&fit=crop",
+                "Appliances": "https://images.unsplash.com/photo-1570222094114-d074f7e1e6e0?q=80&w=400&auto=format&fit=crop"
             };
 
             const displayCats = categories.filter(c => c !== "All");
@@ -425,7 +427,7 @@
                         </div>
 
                         <div class="pt-2">
-                            <label class="block text-[10px] text-gray-400 uppercase tracking-widest mb-1">Select Size:</label>
+                            <label class="block text-[10px] text-gray-400 uppercase tracking-widest mb-1">Select Option:</label>
                             <select id="card-size-${product.id}" class="w-full bg-onyx text-xs text-gold border border-white/10 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-gold">
                                 ${sizeOptionsHtml}
                             </select>
@@ -483,7 +485,7 @@
                     <p class="text-xs text-gray-400 uppercase tracking-widest font-semibold">${p.category}</p>
                     <p class="text-sm text-gray-300 leading-relaxed font-light">${p.description || ''}</p>
                     <div>
-                        <span class="block text-xs uppercase tracking-widest text-gold font-bold mb-2">Available Size:</span>
+                        <span class="block text-xs uppercase tracking-widest text-gold font-bold mb-2">Specification:</span>
                         <div class="flex flex-wrap gap-2">${sizeButtonsHtml}</div>
                     </div>
                     <div class="text-2xl font-serif font-bold text-gold pt-2">₦${Number(p.price).toLocaleString()}</div>
@@ -553,7 +555,7 @@
                         <img src="${item.image}" onerror="handleImageError(this)" alt="${item.name}" class="w-16 h-16 object-cover rounded-xl border border-gold/20">
                         <div class="flex-1">
                             <h4 class="font-serif font-bold text-sm text-white line-clamp-1">${item.name}</h4>
-                            <p class="text-[10px] text-gold uppercase tracking-wider">Size: ${item.size}</p>
+                            <p class="text-[10px] text-gold uppercase tracking-wider">Spec: ${item.size}</p>
                             <p class="text-xs font-bold text-white mt-1">₦${Number(item.price).toLocaleString()}</p>
                             <div class="flex items-center space-x-3 mt-2">
                                 <button onclick="updateQty(${index}, -1)" class="w-6 h-6 bg-luxuryGray text-gray-300 rounded-lg hover:text-gold flex items-center justify-center text-xs">-</button>
@@ -634,7 +636,7 @@
                 message += `👤 *Customer Details:*\n• Name: ${name}\n• Phone: ${phone}\n• Delivery Address: ${address}\n• Delivery Zone: ${locationText}\n\n`;
                 message += `🛍️ *Items to Pay For:*\n`;
                 cart.forEach((item, idx) => {
-                    message += `${idx + 1}. *${item.name}*\n   Size: ${item.size} | Qty: ${item.quantity} | Amount: ₦${(item.price * item.quantity).toLocaleString()}\n\n`;
+                    message += `${idx + 1}. *${item.name}*\n   Spec: ${item.size} | Qty: ${item.quantity} | Amount: ₦${(item.price * item.quantity).toLocaleString()}\n\n`;
                 });
                 message += `------------------------\nSubtotal: ₦${subtotal.toLocaleString()}\nDelivery Fee: ₦${shippingFee.toLocaleString()}\n*Total Amount Due: ₦${total.toLocaleString()}*\n------------------------\nPlease confirm availability and account details for payment.`;
 
