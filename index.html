@@ -396,6 +396,7 @@
             renderProducts();
         }
 
+        // Updated renderProducts: uses data attributes and attaches event listeners after rendering
         function renderProducts() {
             let filtered = products.filter(p => {
                 const matchesCat = activeCategory === "All" || p.category.toLowerCase() === activeCategory.toLowerCase();
@@ -419,9 +420,10 @@
                 const availableSizes = CATEGORY_SIZES[product.category] || ["Standard"];
                 const sizeOptionsHtml = availableSizes.map(s => `<option value="${s}">${s}</option>`).join('');
 
+                // Use data attributes and classes (no duplicate id collisions)
                 return `
-                <div class="group bg-luxuryGray border border-white/10 rounded-2xl overflow-hidden hover:border-gold/50 transition-all duration-300 flex flex-col justify-between shadow-xl">
-                    <div class="relative overflow-hidden aspect-square cursor-pointer" onclick="openProductModal(${product.id})">
+                <div class="group bg-luxuryGray border border-white/10 rounded-2xl overflow-hidden hover:border-gold/50 transition-all duration-300 flex flex-col justify-between shadow-xl" data-product-id="${product.id}">
+                    <div class="relative overflow-hidden aspect-square cursor-pointer product-image" data-product-id="${product.id}">
                         <span class="absolute top-3 left-3 z-10 bg-onyx/80 backdrop-blur-md border border-gold/40 text-gold text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
                             ${product.badge || 'Luxury'}
                         </span>
@@ -431,12 +433,13 @@
                     <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
                         <div>
                             <span class="text-[10px] uppercase text-gray-400 tracking-widest font-semibold">${product.category}</span>
-                            <h3 onclick="openProductModal(${product.id})" class="font-serif font-bold text-lg text-white group-hover:text-gold transition-colors line-clamp-1 cursor-pointer">${product.name}</h3>
+                            <h3 class="product-name font-serif font-bold text-lg text-white group-hover:text-gold transition-colors line-clamp-1 cursor-pointer" data-product-id="${product.id}">${product.name}</h3>
                         </div>
 
                         <div class="pt-2">
                             <label class="block text-[10px] text-gray-400 uppercase tracking-widest mb-1">Select Option:</label>
-                            <select id="card-size-${product.id}" class="w-full bg-onyx text-xs text-gold border border-white/10 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-gold">
+                            <!-- data-size-select scoped per product -->
+                            <select data-size-select="${product.id}" class="card-size w-full bg-onyx text-xs text-gold border border-white/10 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-gold">
                                 ${sizeOptionsHtml}
                             </select>
                         </div>
@@ -444,10 +447,10 @@
                         <div class="flex items-center justify-between pt-3 border-t border-white/5">
                             <span class="font-serif font-bold text-lg text-gold">₦${Number(product.price).toLocaleString()}</span>
                             <div class="flex items-center space-x-2">
-                                <button onclick="openProductModal(${product.id})" class="px-3 py-2 bg-luxuryGray text-gray-300 hover:text-gold border border-white/10 rounded-full text-xs font-semibold uppercase tracking-wider" title="Quick View">
+                                <button type="button" class="open-modal-btn px-3 py-2 bg-luxuryGray text-gray-300 hover:text-gold border border-white/10 rounded-full text-xs font-semibold uppercase tracking-wider" title="Quick View" data-product-id="${product.id}">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
-                                <button onclick="addFromCard(${product.id})" class="px-4 py-2 bg-onyx border border-gold/40 hover:bg-gold hover:text-black text-gold rounded-full text-xs font-semibold uppercase tracking-wider transition-all">
+                                <button type="button" class="add-from-card-btn px-4 py-2 bg-onyx border border-gold/40 hover:bg-gold hover:text-black text-gold rounded-full text-xs font-semibold uppercase tracking-wider transition-all" data-product-id="${product.id}">
                                     Add
                                 </button>
                             </div>
@@ -456,6 +459,24 @@
                 </div>
             `;
             }).join('');
+
+            // Attach listeners AFTER DOM is updated to avoid inline onclick issues
+            // Add-to-cart buttons
+            document.querySelectorAll('.add-from-card-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.dataset.productId;
+                    // Ensure numeric id where applicable
+                    addFromCard(Number(id));
+                });
+            });
+
+            // Open modal buttons (image/name)
+            document.querySelectorAll('.open-modal-btn, .product-image, .product-name').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    const id = e.currentTarget.dataset.productId || e.currentTarget.closest('[data-product-id]')?.dataset?.productId;
+                    if (id) openProductModal(Number(id));
+                });
+            });
         }
 
         window.selectModalSizeBtn = function(sizeBtn, sizeValue) {
@@ -510,10 +531,12 @@
             productModal.classList.add('hidden');
         }
 
+        // Updated addFromCard: queries the size via the data-size-select attribute scoped to the product
         window.addFromCard = function(id) {
             const p = products.find(item => item.id == id);
             if (!p) return;
-            const sizeSelect = document.getElementById(`card-size-${id}`);
+            // Select the size using the data attribute (scoped to product)
+            const sizeSelect = document.querySelector(`[data-size-select="${id}"]`);
             const chosenSize = sizeSelect ? sizeSelect.value : "Standard";
             addToCartAction(p, chosenSize);
         }
@@ -654,4 +677,4 @@
         }
     </script>
 </body>
-</html>
+                </html>
